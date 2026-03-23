@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "iec61850"
+name = "iec61850_rs_poc"
 version = "0.1.0"
