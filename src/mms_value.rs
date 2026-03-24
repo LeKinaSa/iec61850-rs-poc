@@ -180,6 +180,23 @@ mod tests {
     }
 
     #[test]
+    fn unsigned_changes_up() {
+        let mut v = MmsValue::new_unsigned_from_uint32(0);
+        assert_eq!(v.to_uint32(), 0);
+
+        v.set_uint32(5);
+        assert_eq!(v.to_uint32(), 5);
+    }
+    #[test]
+    fn unsigned_changes_down() {
+        let mut v = MmsValue::new_unsigned_from_uint32(2);
+        assert_eq!(v.to_uint32(), 2);
+
+        v.set_uint32(1);
+        assert_eq!(v.to_uint32(), 1);
+    }
+
+    #[test]
     fn boolean_changes_true_false() {
         let mut v = MmsValue::new_boolean(true);
         assert_eq!(v.get_boolean(), true);
@@ -239,44 +256,128 @@ mod tests {
     }
 
     #[test]
-    fn equals_check() {
-        let a = MmsValue::new_integer_from_int32(10);
-        let b = MmsValue::new_integer_from_int32(10);
-        let c = MmsValue::new_integer_from_int32(20);
-        let d = MmsValue::new_boolean(true);
+    fn invalid_getters() {
+        let i1 = MmsValue::new_integer_from_int32(10);
+        let u1 = MmsValue::new_unsigned_from_uint32(20);
+        let b1 = MmsValue::new_boolean(true);
+        
+        assert_eq!(i1.get_boolean(), false);
+        assert_eq!(u1.get_boolean(), false);
+        assert_eq!(b1.to_int32(), 0);
+        assert_eq!(b1.to_uint32(), 0);
+    }
 
-        assert!(a.equals(&b));
-        assert!(!a.equals(&c));
-        assert!(!a.equals(&d));
+    #[test]
+    fn equals_check() {
+        let i1 = MmsValue::new_integer_from_int32(10);
+        let i2 = MmsValue::new_integer_from_int32(10);
+        let i3 = MmsValue::new_integer_from_int32(20);
+        let b1 = MmsValue::new_boolean(true);
+        let b2 = MmsValue::new_boolean(true);
+        let b3 = MmsValue::new_boolean(false);
+        let u1 = MmsValue::new_unsigned_from_uint32(10);
+        let u2 = MmsValue::new_unsigned_from_uint32(10);
+        let u3 = MmsValue::new_unsigned_from_uint32(20);
+
+        assert!( i1.equals(&i2));
+        assert!(!i1.equals(&i3));
+        assert!(!i1.equals(&b1));
+        assert!(!i1.equals(&u1));
+
+        assert!( b1.equals(&b2));
+        assert!(!b1.equals(&b3));
+        assert!(!b1.equals(&i1));
+        assert!(!b1.equals(&u1));
+
+        assert!( u1.equals(&u2));
+        assert!(!u1.equals(&u3));
+        assert!(!u1.equals(&b1));
+        assert!(!u1.equals(&i1));
     }
 
     #[test]
     fn equal_types_check() {
-        let a = MmsValue::new_integer_from_int32(10);
-        let b = MmsValue::new_integer_from_int32(20);
-        let c = MmsValue::new_boolean(true);
+        let i1 = MmsValue::new_integer_from_int32(10);
+        let i2 = MmsValue::new_integer_from_int32(20);
+        let b1 = MmsValue::new_boolean(true);
+        let b2 = MmsValue::new_boolean(false);
+        let u1 = MmsValue::new_unsigned_from_uint32(10);
+        let u2 = MmsValue::new_unsigned_from_uint32(20);
 
-        assert!(a.equal_types(&b));
-        assert!(!a.equal_types(&c));
+        assert!( i1.equal_types(&i2));
+        assert!(!i1.equal_types(&b1));
+        assert!(!i1.equal_types(&u1));
+
+        assert!( b1.equal_types(&b2));
+        assert!(!b1.equal_types(&i1));
+        assert!(!b1.equal_types(&u1));
+
+        assert!( u1.equal_types(&u2));
+        assert!(!u1.equal_types(&i1));
+        assert!(!u1.equal_types(&b1));
     }
 
     #[test]
-    fn update_int() {
+    fn update_integer() {
         let mut a = MmsValue::new_integer_from_int32(10);
         let b = MmsValue::new_integer_from_int32(20);
 
+        assert_eq!(a.to_int32(), 10);
         assert!(a.update(&b));
         assert_eq!(a.to_int32(), 20);
     }
     #[test]
-    fn update_mismatch() {
+    fn update_integer_mismatch() {
         let mut a = MmsValue::new_integer_from_int32(10);
         let b = MmsValue::new_unsigned_from_uint32(20);
         let c = MmsValue::new_boolean(true);
 
+        assert_eq!(a.to_int32(), 10);
         assert!(!a.update(&b));
         assert_eq!(a.to_int32(), 10);
         assert!(!a.update(&c));
         assert_eq!(a.to_int32(), 10);
+    }
+    #[test]
+    fn update_unsigned() {
+        let mut a = MmsValue::new_unsigned_from_uint32(10);
+        let b = MmsValue::new_unsigned_from_uint32(20);
+
+        assert_eq!(a.to_uint32(), 10);
+        assert!(a.update(&b));
+        assert_eq!(a.to_uint32(), 20);
+    }
+    #[test]
+    fn update_unsigned_mismatch() {
+        let mut a = MmsValue::new_unsigned_from_uint32(10);
+        let b = MmsValue::new_integer_from_int32(20);
+        let c = MmsValue::new_boolean(true);
+
+        assert_eq!(a.to_uint32(), 10);
+        assert!(!a.update(&b));
+        assert_eq!(a.to_uint32(), 10);
+        assert!(!a.update(&c));
+        assert_eq!(a.to_uint32(), 10);
+    }
+    #[test]
+    fn update_boolean() {
+        let mut a = MmsValue::new_boolean(false);
+        let b = MmsValue::new_boolean(true);
+
+        assert_eq!(a.get_boolean(), false);
+        assert!(a.update(&b));
+        assert_eq!(a.get_boolean(), true);
+    }
+    #[test]
+    fn update_boolean_mismatch() {
+        let mut a = MmsValue::new_boolean(false);
+        let b = MmsValue::new_unsigned_from_uint32(20);
+        let c = MmsValue::new_integer_from_int32(10);
+
+        assert_eq!(a.get_boolean(), false);
+        assert!(!a.update(&b));
+        assert_eq!(a.get_boolean(), false);
+        assert!(!a.update(&c));
+        assert_eq!(a.get_boolean(), false);
     }
 }
