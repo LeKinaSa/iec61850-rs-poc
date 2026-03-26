@@ -58,3 +58,5 @@ These decisions were made to:
 ## Testing
 
 Unit Tests are provided to showcase the design's testability.
+
+![Unit Test Coverage](docs/coverage.png)
